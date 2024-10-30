@@ -26,14 +26,14 @@ from docx.shared import Inches
 from docx.oxml.ns import qn
 
 ## 选择其中一个api
-from translate_func import baidu_translate as net_translate   # 百度
+# from translate_func import baidu_translate as net_translate   # 百度
 # from translate_func import youdao_translate as net_translate  # 有道
 # from translate_func import google_translate as net_translate  # google
-# from translate_func import gpt_translate as net_translate    # ChatGPT
+from translate_func import gpt_translate as net_translate    # ChatGPT
 
 
 save_img = True
-save_docx = True
+save_docx = False
 
 # store builtin print
 old_print = print
@@ -68,14 +68,14 @@ def main():
     root = os.path.abspath(os.path.join(os.getcwd(), ".."))
     # print('当前项目所在父目录:',root)
 
-    all_file = os.listdir(root + "/EasyTrans-mac/input_file")
+    all_file = os.listdir(root + "/EasyTrans/input_file")
     rm(all_file, '.DS_Store')
 
     for file in all_file:
         file_content = []
         file_content_org = []
         # 翻译文献到新的pdf以及word中
-        path = root + "/EasyTrans-mac/input_file/" + file #这里改pdf的名字
+        path = root + "/EasyTrans/input_file/" + file #这里改pdf的名字
         file_name = os.path.basename(path)
         print('当前翻译的pdf名字',file_name)
         cur_pdf = fitz.open(path)  # 待翻译的pdf
@@ -107,7 +107,7 @@ def main():
                     imgcount += 1
                     new_name = "图片{}.png".format(imgcount)  # 生成图片的名称
                     if save_img:
-                        pix_temp.save(os.path.join(root,'EasyTrans-mac', 'output_file', new_name))
+                        pix_temp.save(os.path.join(root,'EasyTrans', 'output_file', new_name))
                     # bytes_array = pix_temp.getImageData('png')#可以不输出图片再写入新的pdf，通过byte
                     # print(pix_temp.getImageData('png'))
                     pix_temp = None  # 释放资源
@@ -138,7 +138,7 @@ def main():
 
                         img_r = blks[num][:4]  # 图片要放置位置的坐标
                         try:
-                            path_img = os.path.join(root,'EasyTrans-mac', 'output_file',
+                            path_img = os.path.join(root,'EasyTrans', 'output_file',
                                                 '图片{}.png'.format(imgcount))  # 当前页面第几个图片的位置
                             img = open(path_img, "rb").read()  # 输入流
                             new_page.insert_image(img_r, stream=img, keep_proportion=True)  # 输入到新的pdf页面对应位置
@@ -181,7 +181,7 @@ def main():
                                 trans_pragraph = blks[num][4].replace("\n", " ")
                                 page_content.append(trans_pragraph)
                                 res = net_translate(trans_pragraph).replace(' ', '')
-                                new_page.insert_textbox(r, res, fontname="song", fontfile=os.path.join(root,'EasyTrans-mac',
+                                new_page.insert_textbox(r, res, fontname="song", fontfile=os.path.join(root,'EasyTrans',
                                                                                                       'SimSun.ttf'),
                                                        fontsize=7, align=text_pos)  #
                             # 其它情况
@@ -204,12 +204,12 @@ def main():
                                 # fitz.Rect(end[0],begin[1],end[2],end[3])为新扩展的矩形框坐标
                                 if begin[2] > end[2]:  # 如果起始点的右下角x坐标小于结束点的右下角x坐标
                                     new_page.insert_textbox(fitz.Rect(end[0], begin[1], begin[2], end[3]), res, fontname="song",
-                                                        fontfile=os.path.join(root,'EasyTrans-mac',
+                                                        fontfile=os.path.join(root,'EasyTrans',
                                                                               'SimSun.ttf'),
                                                         fontsize=fonts, align=text_pos)
                                 else:
                                     new_page.insert_textbox(fitz.Rect(end[0], begin[1], end[2], end[3]), res, fontname="song",
-                                                        fontfile=os.path.join(root,'EasyTrans-mac',
+                                                        fontfile=os.path.join(root,'EasyTrans',
                                                                               'SimSun.ttf'),
                                                         fontsize=fonts, align=text_pos)
                                 flag = 0
@@ -219,13 +219,13 @@ def main():
                                 if is_figure(trans_pragraph.replace(' ','')):  # 将该块的判断是否是图片标注
                                     page_content.append(trans_pragraph)
                                     res = net_translate(trans_pragraph).replace(' ', '')  # 翻译结果去掉汉字中的空格
-                                    new_page.insert_textbox(r, res, fontname="song", fontfile=os.path.join(root,'EasyTrans-mac',
+                                    new_page.insert_textbox(r, res, fontname="song", fontfile=os.path.join(root,'EasyTrans',
                                                                                                        'SimSun.ttf'),
                                                         fontsize=7, align=fitz.TEXT_ALIGN_CENTER)
                                 # 标记在这里之后的都是参考文献
                                 elif is_reference(trans_pragraph.replace(' ','')):
                                     reference_flag = 1
-                                    new_page.insert_textbox(r, '参考文献', fontname="song", fontfile=os.path.join(root,'EasyTrans-mac',
+                                    new_page.insert_textbox(r, '参考文献', fontname="song", fontfile=os.path.join(root,'EasyTrans',
                                                                                                        'SimSun.ttf'),
                                                         fontsize=fonts, align=text_pos)
                                 else:
@@ -235,12 +235,12 @@ def main():
                                     # 添加到新的docx文档中
                                     new_docx.add_paragraph(res)
                                     if reference_flag == 1:
-                                        new_page.insert_textbox(r, res, fontname="song", fontfile=os.path.join(root,'EasyTrans-mac',
+                                        new_page.insert_textbox(r, res, fontname="song", fontfile=os.path.join(root,'EasyTrans',
                                                                                                               'SimSun.ttf'),
                                                                fontsize=7, align=text_pos)  #
                                     else:
 
-                                        new_page.insert_textbox(r, res, fontname="song", fontfile=os.path.join(root,'EasyTrans-mac',
+                                        new_page.insert_textbox(r, res, fontname="song", fontfile=os.path.join(root,'EasyTrans',
                                                                                                        'SimSun.ttf'),
                                                         fontsize=fonts, align=text_pos)  #
                             # 记录起始矩形坐标
@@ -265,15 +265,15 @@ def main():
                 file_content_org.append('\n')
 
                 # test
-                # new_pdf.save(os.path.join(root,'EasyTrans-mac', 'trans', 'output_file',  file_name[:-4] + '_translated_' +f'{i}' + '.pdf'), garbage=3, deflate=True)
+                # new_pdf.save(os.path.join(root,'EasyTrans', 'trans', 'output_file',  file_name[:-4] + '_translated_' +f'{i}' + '.pdf'), garbage=3, deflate=True)
         
         except Exception as e:
 
             print('翻译过程出现异常......')
             traceback.print_exc()
-            new_file_name = os.path.join(root,'EasyTrans-mac', 'output_file',  file_name[:-4] + '_translated' + '.pdf')  # 翻译后的pdf保存路径
+            new_file_name = os.path.join(root,'EasyTrans', 'output_file',  file_name[:-4] + '_translated' + '.pdf')  # 翻译后的pdf保存路径
             print(new_file_name)
-            new_docx_name = os.path.join(root,'EasyTrans-mac', 'output_file', file_name[:-4] + '_translated' + '.docx')  # 翻译后的docx保存路径
+            new_docx_name = os.path.join(root,'EasyTrans', 'output_file', file_name[:-4] + '_translated' + '.docx')  # 翻译后的docx保存路径
             new_docx.save(new_docx_name)  # 保存翻译后的docx
             new_pdf.save(new_file_name, garbage=4, deflate=True, clean=True)  # 保存翻译后的pdf
             t1 = time.time()
@@ -285,21 +285,21 @@ def main():
 
 
 
-        new_file_name = os.path.join(root,'EasyTrans-mac', 'output_file',  file_name[:-4] + '_translated' + '.pdf')  # 翻译后的pdf保存路径
+        new_file_name = os.path.join(root,'EasyTrans', 'output_file',  file_name[:-4] + '_translated' + '.pdf')  # 翻译后的pdf保存路径
         if os._exists(new_file_name):
             try:
                 os.remove(new_file_name)
             except:
                 print('删除已有的文件失败，请先关闭该文件然后重新翻译！')
-        new_docx_name = os.path.join(root,'EasyTrans-mac', 'output_file', file_name[:-4] + '_translated' + '.docx')  # 翻译后的docx保存路径
+        new_docx_name = os.path.join(root,'EasyTrans', 'output_file', file_name[:-4] + '_translated' + '.docx')  # 翻译后的docx保存路径
         if os._exists(new_docx_name):
             try:
                 os.remove(new_docx_name)
             except:
                 print('删除已有的文件失败，请先关闭该文件然后重新翻译！')
 
-        new_txt_name = os.path.join(root,'EasyTrans-mac', 'output_file',  file_name[:-4] + '_translated' + '.txt')
-        new_txt_name_org = os.path.join(root,'EasyTrans-mac', 'output_file',  file_name[:-4] + '_org' + '.txt')
+        new_txt_name = os.path.join(root,'EasyTrans', 'output_file',  file_name[:-4] + '_translated' + '.md')
+        new_txt_name_org = os.path.join(root,'EasyTrans', 'output_file',  file_name[:-4] + '_org' + '.txt')
 
         if os._exists(new_txt_name):
             try:
@@ -349,7 +349,7 @@ def main():
             print('保存pdf异常')
 
         try:
-            shutil.move(path,os.path.join(root,'EasyTrans-mac', 'output_file',  file_name))
+            shutil.move(path,os.path.join(root,'EasyTrans', 'output_file',  file_name))
         except Exception as e:
             print(f"Reason: {e}")
             print('转移原始文件失败，可能是文件在另外的软件打开。\n请手动将pdf文件移出input文件夹。')

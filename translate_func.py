@@ -168,7 +168,7 @@ def translate(key, target_language, text, use_azure=False, api_base="", deployme
         )
     else:
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
+            model="openai/gpt-4o-mini",
             messages=messages,
         )
 
@@ -201,12 +201,12 @@ def gpt_translate(content):
 
     content = content.replace('\n','')
     print(content)
-    max_length = 11000
+    max_length = 10240
     if len(content) > max_length:
         parts = divide_string_by_sentences(content, max_length)
         return "".join([gpt_translate(part) for part in parts])
     else:
-        return translate(secretKey,"Chinese", content, api_base="https://aigptx.top/v1")
+        return translate(secretKey,"Chinese", content, api_base="https://openrouter.ai/api/v1")
 
 
 # 百度翻译方法
